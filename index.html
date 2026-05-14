@@ -100,13 +100,13 @@
     </p>
 
     <div id="download" class="mt-10 flex flex-col items-center gap-3">
-      <a href="https://github.com/xiaomaogy/chatlens/releases/download/v0.1.7/ChatLens.dmg"
+      <a href="https://github.com/xiaomaogy/chatlens/releases/download/v0.1.8/ChatLens.dmg"
          class="group inline-flex items-center gap-3 px-6 py-3.5 rounded-xl bg-ink text-white font-medium shadow-lg shadow-indigo-500/10 hover:bg-slate-900 hover:shadow-xl hover:shadow-indigo-500/20 transition-all">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/>
         </svg>
         <span>下载 ChatLens.dmg</span>
-        <span class="text-xs text-slate-300 font-normal">v0.1.7 · macOS · ~40 MB</span>
+        <span class="text-xs text-slate-300 font-normal">v0.1.8 · macOS · ~48 MB</span>
       </a>
       <p class="text-xs text-slate-500 max-w-md">
         未签名版本 · 首次启动请<span class="font-medium text-slate-700">右键 → 打开</span>,在弹窗里确认一次
@@ -249,42 +249,17 @@ curl -fsSL <span class="s">https://claude.com/install.sh</span> | bash</div>
       <li class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
         <div class="flex items-baseline gap-4">
           <div class="step-number text-3xl font-bold">03</div>
-          <h3 class="text-xl font-semibold text-ink">安装并初始化 wechat-cli</h3>
+          <h3 class="text-xl font-semibold text-ink">无需单独安装 wechat-cli</h3>
         </div>
         <p class="mt-3 text-slate-600 leading-relaxed">
-          <a href="https://github.com/xiaomaogy/wechat-cli" target="_blank" rel="noopener" class="text-accent hover:underline font-medium">wechat-cli</a> 是 ChatLens 与本地 WeChat 数据库之间的桥梁。它会以只读方式读取你的聊天记录,不会修改任何数据。
+          ChatLens v0.1.8 起把 <a href="https://github.com/xiaomaogy/wechat-cli" target="_blank" rel="noopener" class="text-accent hover:underline font-medium">wechat-cli</a> 直接打包进了 <code class="bg-slate-100 px-1 rounded">.app</code>,你<span class="font-medium text-ink">不需要再 pipx 装一遍</span>。它仍然是只读访问本地 WeChat 数据库的那条桥梁,不会修改任何数据。
         </p>
-
-        <div class="mt-5 space-y-4 text-sm text-slate-700">
-          <div>
-            <div class="font-semibold text-ink mb-1">① 用 pipx 安装(推荐)</div>
-            没有 pipx 的话,先装一下:
-<div class="codecard">brew install pipx
-pipx ensurepath</div>
-            然后安装 wechat-cli:
-<div class="codecard mt-2">pipx install <span class="s">git+https://github.com/xiaomaogy/wechat-cli.git</span></div>
-          </div>
-
-          <div>
-            <div class="font-semibold text-ink mb-1">② 初始化(只需要做一次)</div>
-<div class="codecard">sudo wechat-cli init</div>
-            <p class="text-slate-600 mt-2 text-[13px]">
-              <span class="text-rose-700 font-medium">⚠ 必须用 sudo</span> — init 需要从内核内存里读 WeChat 进程的会话密钥,普通权限拿不到。终端会先要你输系统密码。
-              <br><span class="text-slate-500">如果还弹了「辅助功能 / 完全磁盘访问」的权限提示,把当前的终端 App 加进「系统设置 → 隐私与安全」对应的列表里即可,然后重跑这条命令。</span>
-            </p>
-          </div>
-
-          <div>
-            <div class="font-semibold text-ink mb-1">③ 验证</div>
-<div class="codecard"><span class="c"># 先看到任何一个会话的 username</span>
-wechat-cli sessions --limit 5
-
-<span class="c"># 再用上面输出里的 username 拉一段消息</span>
-wechat-cli history <span class="k">&lt;username&gt;</span> --limit 5</div>
-            <p class="text-slate-600 mt-2 text-[13px]">
-              <span class="font-medium text-ink">两条都要能返回内容</span>。有时候 <code class="bg-slate-100 px-1 rounded">sessions</code> 能显示但 <code class="bg-slate-100 px-1 rounded">history</code> 拉不到消息正文 — 那是数据库密钥没拿全,重新 <code class="bg-slate-100 px-1 rounded">sudo wechat-cli init</code> 一次基本就好了。
-            </p>
-          </div>
+        <p class="mt-3 text-slate-600 leading-relaxed text-[13px]">
+          唯一保留的人工动作是<span class="font-medium text-ink">第一次启动时跑一遍 init</span> —— init 需要从内核读 WeChat 进程的会话密钥,只能 sudo。ChatLens 首次启动会自动弹出引导页,点一下「在 Terminal 中运行 init」就会替你在 Terminal 里贴好命令,你只需要输 Mac 登录密码。下一步往下走。
+        </p>
+        <div class="mt-5 rounded-lg bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 leading-relaxed">
+          <span class="font-semibold text-ink">如果你之前已经 pipx 装过 wechat-cli:</span>
+          没关系,可以保留也可以 <code class="bg-slate-100 px-1 rounded">pipx uninstall wechat-cli</code>。ChatLens 在 bundled 模式下只用自己内置的那一份,跟 PATH 上的不冲突。
         </div>
       </li>
 
@@ -300,7 +275,8 @@ wechat-cli history <span class="k">&lt;username&gt;</span> --limit 5</div>
         <ol class="mt-4 space-y-2 text-sm text-slate-700 list-decimal pl-5">
           <li>把<a href="#download" class="text-accent hover:underline">下载的 ChatLens.dmg</a> 打开,把 ChatLens.app 拖进 Applications。</li>
           <li>首次启动:在 Finder 里<span class="font-medium text-ink">右键 ChatLens.app → 打开</span>,在弹窗里点「打开」。<br><span class="text-xs text-slate-500">(因为没花钱给 Apple 公证,Gatekeeper 默认会拦下来。只有第一次需要这么干。)</span></li>
-          <li>程序会自动起一个本地服务,然后弹出主界面。左侧栏顶部应该看到两个绿勾:<span class="text-emerald-600 font-medium">✓ wechat-cli</span> 和 <span class="text-emerald-600 font-medium">✓ claude CLI</span>。</li>
+          <li><span class="font-medium text-ink">首次启动会弹出设置引导页</span>:点「在 Terminal 中运行 init」→ Terminal 自动打开并贴好命令 → 输入 Mac 登录密码 → 看到「密钥提取完成」后回到 ChatLens 点「我已完成」。</li>
+          <li>左侧栏顶部应该看到两个绿勾:<span class="text-emerald-600 font-medium">✓ wechat-cli</span> 和 <span class="text-emerald-600 font-medium">✓ claude CLI</span>。</li>
           <li>看到群列表后,点任意一个群的「生成精华」,等 30–90 秒,你的第一份每日精华就到手了。</li>
         </ol>
 
