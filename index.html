@@ -264,17 +264,23 @@ pipx ensurepath</div>
 
           <div>
             <div class="font-semibold text-ink mb-1">② 初始化(只需要做一次)</div>
-<div class="codecard">wechat-cli init</div>
+<div class="codecard">sudo wechat-cli init</div>
             <p class="text-slate-600 mt-2 text-[13px]">
-              这一步会请求一次性的辅助功能权限(用来定位 WeChat 进程并解密本地数据库的会话密钥)。
-              <span class="text-slate-500">系统弹窗的话,把终端加进「系统设置 → 隐私与安全 → 完全磁盘访问」即可。</span>
+              <span class="text-rose-700 font-medium">⚠ 必须用 sudo</span> — init 需要从内核内存里读 WeChat 进程的会话密钥,普通权限拿不到。终端会先要你输系统密码。
+              <br><span class="text-slate-500">如果还弹了「辅助功能 / 完全磁盘访问」的权限提示,把当前的终端 App 加进「系统设置 → 隐私与安全」对应的列表里即可,然后重跑这条命令。</span>
             </p>
           </div>
 
           <div>
             <div class="font-semibold text-ink mb-1">③ 验证</div>
-<div class="codecard">wechat-cli sessions --limit 3</div>
-            <p class="text-slate-600 mt-2 text-[13px]">应该能看到最近 3 个聊天会话的 JSON 输出。如果报错,先确认 WeChat 在运行,然后重跑 <code class="bg-slate-100 px-1 rounded">wechat-cli init</code>。</p>
+<div class="codecard"><span class="c"># 先看到任何一个会话的 username</span>
+wechat-cli sessions --limit 5
+
+<span class="c"># 再用上面输出里的 username 拉一段消息</span>
+wechat-cli history <span class="k">&lt;username&gt;</span> --limit 5</div>
+            <p class="text-slate-600 mt-2 text-[13px]">
+              <span class="font-medium text-ink">两条都要能返回内容</span>。有时候 <code class="bg-slate-100 px-1 rounded">sessions</code> 能显示但 <code class="bg-slate-100 px-1 rounded">history</code> 拉不到消息正文 — 那是数据库密钥没拿全,重新 <code class="bg-slate-100 px-1 rounded">sudo wechat-cli init</code> 一次基本就好了。
+            </p>
           </div>
         </div>
       </li>
