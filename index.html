@@ -267,10 +267,10 @@
   }
   .download-block .note { font-size: 13px; max-width: 420px; text-align: center; }
 
-  /* Preview window */
+  /* Preview window — mirrors the actual ChatLens app UI */
   .preview {
     margin: 64px auto 0;
-    max-width: 880px;
+    max-width: 920px;
     background: var(--card);
     border: var(--border-thick);
     border-radius: var(--radius-md);
@@ -279,49 +279,158 @@
     transform: rotate(-0.4deg);
   }
   .preview-titlebar {
-    height: 38px;
+    height: 34px;
     background: var(--surface);
     border-bottom: var(--border-thick);
     display: flex; align-items: center; gap: 8px;
-    padding: 0 16px;
+    padding: 0 14px;
   }
-  .preview-titlebar .dot { width: 14px; height: 14px; border: 2.5px solid var(--ink); border-radius: 50%; }
+  .preview-titlebar .dot { width: 12px; height: 12px; border: 2px solid var(--ink); border-radius: 50%; }
   .preview-titlebar .dot.r { background: var(--danger); }
   .preview-titlebar .dot.y { background: var(--primary); }
   .preview-titlebar .dot.g { background: var(--success); }
-  .preview-titlebar .title { margin-left: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-  .preview-body { display: flex; min-height: 280px; }
+  .preview-titlebar .title { margin-left: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #475569; }
+
+  .preview-body { display: flex; min-height: 440px; }
+
+  /* Sidebar — bg-ink with slate-300 text, matches src/chatlens/static */
   .preview-sidebar {
-    width: 200px;
-    background: var(--ink); color: var(--surface);
-    padding: 18px 16px;
+    width: 188px;
+    background: #0F172A; color: #CBD5E1;
+    display: flex; flex-direction: column;
     border-right: var(--border-thick);
-    display: flex; flex-direction: column; gap: 14px;
+    text-align: left;
   }
-  .preview-sidebar .brand-row { display: flex; align-items: center; gap: 8px; }
-  .preview-sidebar .brand-row .m { width: 22px; height: 22px; background: var(--primary); border: 2px solid var(--surface); display: grid; place-items: center; color: var(--ink); font-weight: 900; font-size: 12px; }
-  .preview-sidebar .status { font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.7; }
-  .preview-sidebar .status .ok { color: var(--primary); }
-  .preview-sidebar .status .sub { color: #94A3B8; padding-left: 12px; }
-  .preview-sidebar .nav-item {
-    font-size: 12px; padding: 6px 8px;
-    border: 2px solid transparent;
-    text-transform: uppercase; letter-spacing: 0.06em; font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  .preview-sidebar .brand-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
   }
-  .preview-sidebar .nav-item.active { background: var(--primary); color: var(--ink); border: 2px solid var(--surface); }
-  .preview-main { flex: 1; padding: 18px; background: var(--surface); }
-  .preview-main .heading { font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 12px; }
-  .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .preview-sidebar .brand-row .logo {
+    width: 28px; height: 28px; border-radius: 7px;
+    background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    display: grid; place-items: center;
+    color: white; font-weight: 800; font-size: 14px;
+  }
+  .preview-sidebar .brand-row .nm { color: white; font-weight: 600; font-size: 13px; line-height: 1.1; }
+  .preview-sidebar .brand-row .vr { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; color: #94A3B8; line-height: 1.2; margin-top: 2px; }
+  .preview-sidebar .status {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .preview-sidebar .status .pill-row {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; line-height: 1.4;
+  }
+  .preview-sidebar .status .pill-row .ic { color: #34D399; font-weight: 700; }
+  .preview-sidebar .model-block {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .preview-sidebar .model-block .lbl {
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #94A3B8; margin-bottom: 5px;
+  }
+  .preview-sidebar .model-block .sel {
+    width: 100%; background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #E2E8F0; font-size: 11px;
+    padding: 5px 8px; border-radius: 4px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .preview-sidebar nav { padding: 10px 8px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
+  .preview-sidebar .nv {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 12px; font-size: 12px;
+    color: #CBD5E1; border-radius: 7px;
+  }
+  .preview-sidebar .nv.active { background: rgba(255,255,255,0.1); color: white; font-weight: 500; }
+  .preview-sidebar .nv .ico { width: 14px; opacity: 0.75; display: inline-block; font-size: 12px; }
+  .preview-sidebar .foot {
+    padding: 10px 14px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    font-size: 10.5px; color: #94A3B8;
+  }
+
+  /* Main — slate-50 like the real app */
+  .preview-main { flex: 1; background: #F8FAFC; display: flex; flex-direction: column; text-align: left; }
+  .preview-topbar {
+    height: 40px;
+    background: white;
+    border-bottom: 1px solid #E5E7EB;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px;
+  }
+  .preview-topbar .crumb { font-size: 12.5px; color: #0F172A; font-weight: 500; }
+  .preview-topbar .actions { display: flex; gap: 6px; }
+  .preview-topbar .btn-mini {
+    font-size: 10.5px; padding: 4px 9px; border-radius: 6px;
+    background: #4F46E5; color: white; font-weight: 500;
+  }
+  .preview-topbar .btn-mini.ghost {
+    background: white; color: #1F2937; border: 1px solid #E5E7EB;
+  }
+
+  .preview-content { padding: 14px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  .preview-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .preview-stat {
+    background: white; border: 1px solid #E5E7EB; border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .preview-stat .l { font-size: 10px; color: #64748B; }
+  .preview-stat .v { font-size: 20px; font-weight: 700; color: #0F172A; line-height: 1.1; margin-top: 2px; }
+  .preview-stat .s { font-size: 9.5px; color: #94A3B8; margin-top: 1px; }
+
+  .preview-section-h {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-top: 2px;
+  }
+  .preview-section-h h4 { margin: 0; font-size: 13px; font-weight: 600; color: #0F172A; }
+  .preview-section-h .hint { font-size: 10px; color: #64748B; }
+
+  .preview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .preview-card {
-    background: var(--card);
-    border: 2.5px solid var(--ink);
-    border-radius: 4px;
-    box-shadow: 3px 3px 0 var(--ink);
+    background: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
     padding: 10px;
+    position: relative;
   }
-  .preview-card .name { font-weight: 800; font-size: 13px; }
-  .preview-card .meta-row { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #475569; margin-top: 2px; }
-  .preview-card .cta { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--secondary); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .preview-card .star { position: absolute; top: 8px; right: 8px; color: #CBD5E1; font-size: 13px; line-height: 1; }
+  .preview-card .star.on { color: #F59E0B; }
+  .preview-card .head { display: flex; align-items: center; gap: 8px; padding-right: 14px; }
+  .preview-card .ava {
+    width: 28px; height: 28px; border-radius: 6px;
+    display: grid; place-items: center;
+    color: white; font-weight: 700; font-size: 12px;
+    flex-shrink: 0;
+  }
+  .preview-card .ava.a1 { background: linear-gradient(135deg, #60A5FA, #6366F1); }
+  .preview-card .ava.a2 { background: linear-gradient(135deg, #34D399, #10B981); }
+  .preview-card .ava.a3 { background: linear-gradient(135deg, #F472B6, #DB2777); }
+  .preview-card .ava.a4 { background: linear-gradient(135deg, #FBBF24, #F59E0B); }
+  .preview-card .ava.a5 { background: linear-gradient(135deg, #A78BFA, #7C3AED); }
+  .preview-card .ava.a6 { background: linear-gradient(135deg, #2DD4BF, #0EA5E9); }
+  .preview-card .meta { min-width: 0; flex: 1; }
+  .preview-card .name { font-size: 12px; font-weight: 500; color: #0F172A; line-height: 1.2; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .preview-card .last { font-size: 10px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .preview-card .foot {
+    margin-top: 8px; display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px; color: #64748B;
+  }
+  .preview-card .foot .counts { display: flex; gap: 8px; }
+  .preview-card .foot .counts b { font-weight: 600; color: #0F172A; }
+  .preview-card .foot .counts .pct b { color: #4F46E5; }
+  .preview-card .pillbtn {
+    display: inline-flex; align-items: stretch;
+    background: #4F46E5; color: white;
+    font-size: 9.5px; font-weight: 500;
+    border-radius: 5px; overflow: hidden;
+  }
+  .preview-card .pillbtn .main { padding: 3px 7px; display: inline-flex; align-items: center; gap: 3px; }
+  .preview-card .pillbtn .chev { padding: 3px 5px; border-left: 1px solid rgba(255,255,255,0.25); display: inline-flex; align-items: center; }
 
   /* =========================================================================
      Section heading
@@ -555,6 +664,10 @@
      ------------------------------------------------------------------------- */
   @media (max-width: 720px) {
     .preview-sidebar { display: none; }
+    .preview-grid { grid-template-columns: repeat(2, 1fr); }
+    .preview-stats { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .preview-stat .v { font-size: 17px; }
+    .preview-topbar .actions .btn-mini.ghost { display: none; }
     .navlinks a:not(.nav-cta) { display: none; }
     .step { padding: 22px; }
     .card, .pcard { padding: 22px; }
@@ -609,51 +722,141 @@
       <p class="note">未签名版本 · 首次启动请<strong>右键 → 打开</strong>,在弹窗里确认一次</p>
     </div>
 
-    <!-- preview window -->
+    <!-- preview window — mirrors the actual ChatLens dashboard -->
     <div class="preview" aria-hidden="true">
       <div class="preview-titlebar">
         <span class="dot r"></span>
         <span class="dot y"></span>
         <span class="dot g"></span>
-        <span class="title">ChatLens — 本机模式</span>
+        <span class="title">ChatLens — localhost:8090</span>
       </div>
       <div class="preview-body">
         <aside class="preview-sidebar">
           <div class="brand-row">
-            <div class="m">C</div>
-            <span style="font-weight:900; font-size:14px;">ChatLens</span>
+            <div class="logo">C</div>
+            <div>
+              <div class="nm">ChatLens</div>
+              <div class="vr">v0.1.10</div>
+            </div>
           </div>
           <div class="status">
-            <div class="ok">✓ wechat-cli 1.2</div>
-            <div class="sub">最近消息 · 3 分钟前</div>
-            <div class="ok">✓ claude CLI</div>
+            <div class="pill-row"><span class="ic">✓</span><span>wechat-cli</span></div>
+            <div class="pill-row"><span class="ic">✓</span><span>claude CLI</span></div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:4px; margin-top:6px;">
-            <div class="nav-item active">Dashboard</div>
-            <div class="nav-item">精华</div>
-            <div class="nav-item">每日精华</div>
+          <div class="model-block">
+            <div class="lbl">Claude 模型</div>
+            <div class="sel"><span>sonnet</span><span style="opacity:0.6">▾</span></div>
           </div>
+          <nav>
+            <div class="nv active"><span class="ico">▦</span><span>Dashboard</span></div>
+            <div class="nv"><span class="ico">📖</span><span>精华</span></div>
+            <div class="nv"><span class="ico">★</span><span>每日精华</span></div>
+          </nav>
+          <div class="foot">本机模式</div>
         </aside>
         <div class="preview-main">
-          <div class="heading">12 个群 · 监控中</div>
-          <div class="preview-grid">
-            <div class="preview-card">
-              <div class="name">硅谷读书会</div>
-              <div class="meta-row">142 成员 · 今日 3 条精华</div>
-              <div class="cta">生成精华 →</div>
+          <div class="preview-topbar">
+            <div class="crumb">Dashboard</div>
+            <div class="actions">
+              <span class="btn-mini">✦ 精选群全量生成 (4)</span>
+              <span class="btn-mini ghost">刷新</span>
             </div>
-            <div class="preview-card">
-              <div class="name">AI 前线小组</div>
-              <div class="meta-row">88 成员 · 今日 5 条精华</div>
-              <div class="cta">生成精华 →</div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-stats">
+              <div class="preview-stat"><div class="l">微信群</div><div class="v">12</div><div class="s">已同步</div></div>
+              <div class="preview-stat"><div class="l">未读消息</div><div class="v">47</div><div class="s">累计跨群</div></div>
+              <div class="preview-stat"><div class="l">生成内容</div><div class="v">8</div><div class="s">近 10 条</div></div>
             </div>
-            <div class="preview-card">
-              <div class="name">创业咖啡馆</div>
-              <div class="meta-row">211 成员 · 今日 2 条精华</div>
+            <div class="preview-section-h">
+              <h4>微信群 (12)</h4>
+              <span class="hint">按精选 / 最近活跃排序 · 点 ☆ 精选</span>
             </div>
-            <div class="preview-card">
-              <div class="name">独立开发者</div>
-              <div class="meta-row">56 成员 · 今日 1 条精华</div>
+            <div class="preview-grid">
+              <div class="preview-card">
+                <span class="star on">★</span>
+                <div class="head">
+                  <div class="ava a1">读</div>
+                  <div class="meta">
+                    <div class="name">硅谷读书会</div>
+                    <div class="last">Alex: 下周读这本怎么样</div>
+                  </div>
+                </div>
+                <div class="foot">
+                  <div class="counts"><span>未读 <b>12</b></span><span class="pct">精华 <b>3</b></span></div>
+                  <span class="pillbtn"><span class="main">✦ 生成精华</span><span class="chev">▾</span></span>
+                </div>
+              </div>
+              <div class="preview-card">
+                <span class="star on">★</span>
+                <div class="head">
+                  <div class="ava a2">AI</div>
+                  <div class="meta">
+                    <div class="name">AI 前线小组</div>
+                    <div class="last">Jane: 4.7 发布了 🎉</div>
+                  </div>
+                </div>
+                <div class="foot">
+                  <div class="counts"><span>未读 <b>5</b></span><span class="pct">精华 <b>5</b></span></div>
+                  <span class="pillbtn"><span class="main">✦ 生成精华</span><span class="chev">▾</span></span>
+                </div>
+              </div>
+              <div class="preview-card">
+                <span class="star on">★</span>
+                <div class="head">
+                  <div class="ava a3">咖</div>
+                  <div class="meta">
+                    <div class="name">创业咖啡馆</div>
+                    <div class="last">小马: 周四有人来吗</div>
+                  </div>
+                </div>
+                <div class="foot">
+                  <div class="counts"><span>未读 <b>8</b></span><span class="pct">精华 <b>2</b></span></div>
+                  <span class="pillbtn"><span class="main">✦ 生成精华</span><span class="chev">▾</span></span>
+                </div>
+              </div>
+              <div class="preview-card">
+                <span class="star">☆</span>
+                <div class="head">
+                  <div class="ava a4">独</div>
+                  <div class="meta">
+                    <div class="name">独立开发者</div>
+                    <div class="last">Mike: 上架审核通过了</div>
+                  </div>
+                </div>
+                <div class="foot">
+                  <div class="counts"><span>未读 <b>3</b></span><span class="pct">精华 <b>1</b></span></div>
+                  <span class="pillbtn"><span class="main">✦ 生成精华</span><span class="chev">▾</span></span>
+                </div>
+              </div>
+              <div class="preview-card">
+                <span class="star">☆</span>
+                <div class="head">
+                  <div class="ava a5">设</div>
+                  <div class="meta">
+                    <div class="name">产品设计圈</div>
+                    <div class="last">Lily: 这版改稿明天</div>
+                  </div>
+                </div>
+                <div class="foot">
+                  <div class="counts"><span>未读 <b>7</b></span><span class="pct">精华 <b>0</b></span></div>
+                  <span class="pillbtn"><span class="main">✦ 生成精华</span><span class="chev">▾</span></span>
+                </div>
+              </div>
+              <div class="preview-card">
+                <span class="star">☆</span>
+                <div class="head">
+                  <div class="ava a6">投</div>
+                  <div class="meta">
+                    <div class="name">早期投资圈</div>
+                    <div class="last">David: 那个 deck 我整理下</div>
+                  </div>
+                </div>
+                <div class="foot">
+                  <div class="counts"><span>未读 <b>2</b></span><span class="pct">精华 <b>1</b></span></div>
+                  <span class="pillbtn"><span class="main">✦ 生成精华</span><span class="chev">▾</span></span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
