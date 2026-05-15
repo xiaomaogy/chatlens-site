@@ -100,13 +100,13 @@
     </p>
 
     <div id="download" class="mt-10 flex flex-col items-center gap-3">
-      <a href="https://github.com/xiaomaogy/chatlens/releases/download/v0.1.8/ChatLens.dmg"
+      <a href="https://github.com/xiaomaogy/chatlens/releases/download/v0.1.9/ChatLens.dmg"
          class="group inline-flex items-center gap-3 px-6 py-3.5 rounded-xl bg-ink text-white font-medium shadow-lg shadow-indigo-500/10 hover:bg-slate-900 hover:shadow-xl hover:shadow-indigo-500/20 transition-all">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/>
         </svg>
         <span>下载 ChatLens.dmg</span>
-        <span class="text-xs text-slate-300 font-normal">v0.1.8 · macOS · ~48 MB</span>
+        <span class="text-xs text-slate-300 font-normal">v0.1.9 · macOS · ~49 MB</span>
       </a>
       <p class="text-xs text-slate-500 max-w-md">
         未签名版本 · 首次启动请<span class="font-medium text-slate-700">右键 → 打开</span>,在弹窗里确认一次
@@ -170,8 +170,8 @@
     <div class="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 flex flex-col md:flex-row md:items-start gap-3">
       <div class="text-2xl">⚠️</div>
       <div class="text-sm text-amber-900 leading-relaxed">
-        <div class="font-semibold text-amber-950 mb-1">使用前请先准备好这三样东西</div>
-        ChatLens 本身是一个轻量壳子,真正干活的是你本机的 WeChat、Claude Code、wechat-cli。按下面的步骤一次性配好,之后就只剩双击使用了。
+        <div class="font-semibold text-amber-950 mb-1">先把 ChatLens 跑起来,缺什么再补</div>
+        ChatLens 本身是一个轻量壳子,真正干活的是你本机的 WeChat 和 Claude Code。先装上跑一遍,左侧状态条会告诉你还缺哪一块,再照下面对应的步骤补上即可。
         <div class="mt-2 text-[13px]">Claude Code 需要付费的 <span class="font-semibold">Claude Max</span> 订阅(USD $100/月或 $200/月),没有的话摘要功能跑不起来。</div>
       </div>
     </div>
@@ -180,19 +180,48 @@
   <!-- setup -->
   <section id="setup" class="pt-16">
     <h2 class="text-3xl font-bold tracking-tight text-ink">使用指南</h2>
-    <p class="mt-2 text-slate-600">从零到能用,大概 15 分钟。</p>
+    <p class="mt-2 text-slate-600">先跑起来,缺哪块依赖再补哪步。</p>
 
     <ol class="mt-10 space-y-6">
 
-      <!-- Step 1 -->
+      <!-- Step 1 — Run ChatLens (this is the entry point) -->
       <li class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
         <div class="flex items-baseline gap-4">
           <div class="step-number text-3xl font-bold">01</div>
-          <h3 class="text-xl font-semibold text-ink">安装 WeChat for Mac</h3>
+          <h3 class="text-xl font-semibold text-ink">安装并运行 ChatLens</h3>
         </div>
         <p class="mt-3 text-slate-600 leading-relaxed">
-          ChatLens 读取的是你本地 Mac 上 WeChat 客户端的数据库,所以必须先装并登录 WeChat。
-          请装<span class="font-medium text-ink">这个锁定版本 4.1.9.31</span> — 最新版的 WeChat 经常改本地数据库结构,wechat-cli 跟不上的时候 ChatLens 就会读不到聊天记录。锁版本最稳。
+          直接装上跑起来,启动后左侧状态条会告诉你缺什么。
+        </p>
+        <ol class="mt-4 space-y-2 text-sm text-slate-700 list-decimal pl-5">
+          <li>把<a href="#download" class="text-accent hover:underline">下载的 ChatLens.dmg</a> 打开,把 ChatLens.app 拖进 Applications。</li>
+          <li>首次启动:在 Finder 里<span class="font-medium text-ink">右键 ChatLens.app → 打开</span>,在弹窗里点「打开」。<br><span class="text-xs text-slate-500">(没花钱给 Apple 公证,只有第一次需要这么做。)</span></li>
+          <li>启动后看左侧栏顶部:
+            <ul class="mt-1.5 space-y-1 list-disc pl-5 text-[13px]">
+              <li>两个 <span class="text-emerald-600 font-medium">✓ 绿勾</span> 都在 → 依赖齐了,继续下一条。</li>
+              <li>看到 <span class="text-rose-600 font-medium">✗ wechat-cli 不可用</span>,或顶部红条提示 WeChat 数据读不到 → 跳到 <a href="#step-wechat" class="text-accent hover:underline font-medium">第 02 步</a> 装 WeChat for Mac。</li>
+              <li>看到 <span class="text-rose-600 font-medium">✗ claude CLI</span> 不可用 → 跳到 <a href="#step-claude" class="text-accent hover:underline font-medium">第 03 步</a> 装 Claude Code。</li>
+            </ul>
+          </li>
+          <li>依赖齐了之后,首次会弹出设置引导页:点「在 Terminal 中运行 init」→ 输入 Mac 登录密码 → 看到「密钥提取完成」后回到 ChatLens 点「我已完成」。这一步只做一次。</li>
+          <li>看到群列表后,点任意一个群的「生成精华」,等 30–90 秒,你的第一份每日精华就到手了。</li>
+        </ol>
+
+        <div class="mt-5 rounded-lg bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 leading-relaxed">
+          <span class="font-semibold text-ink">小贴士:</span>
+          运行中如果左侧出现红色「WeChat 未启动」,把 WeChat 桌面应用打开再刷新即可。出现「Claude 额度已用尽」就等下一个计费周期开始,或升级到更高档的 Max。
+        </div>
+      </li>
+
+      <!-- Step 2 — Only needed if WeChat not installed / wrong version -->
+      <li id="step-wechat" class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
+        <div class="flex items-baseline gap-4">
+          <div class="step-number text-3xl font-bold">02</div>
+          <h3 class="text-xl font-semibold text-ink">如果缺 WeChat:安装 WeChat for Mac</h3>
+        </div>
+        <p class="mt-3 text-slate-600 leading-relaxed">
+          ChatLens 读取的是你本地 Mac 上 WeChat 客户端的数据库,所以必须装并登录 WeChat。
+          请装<span class="font-medium text-ink">这个锁定版本 4.1.9.31</span> — 最新版的 WeChat 经常改本地数据库结构,跟不上的时候 ChatLens 就会读不到聊天记录。锁版本最稳。
         </p>
         <div class="mt-4 flex flex-wrap gap-3">
           <a href="https://github.com/zsbai/wechat-versions/releases/download/4.1.9.31/WeChatMac-4.1.9.31.dmg"
@@ -203,14 +232,14 @@
           <span class="text-xs text-slate-500 self-center">来源:<a href="https://github.com/zsbai/wechat-versions" target="_blank" rel="noopener" class="hover:underline">zsbai/wechat-versions</a> · 锁定版本</span>
         </div>
         <p class="mt-3 text-xs text-amber-700"><span class="font-medium">⚠ 如果你已经装了更新的 WeChat</span>,先在「应用程序」里把当前的 WeChat.app 删掉再装这个版本,否则系统可能拒绝降级或装出来跑的还是旧设置。</p>
-        <p class="mt-4 text-xs text-slate-500">装完后请<span class="font-medium">至少登录一次</span>,让 WeChat 把聊天记录同步到本地。之后请保持 WeChat 处于运行状态(可以最小化),否则 ChatLens 读不到数据。</p>
+        <p class="mt-4 text-xs text-slate-500">装完后请<span class="font-medium">至少登录一次</span>,让 WeChat 把聊天记录同步到本地。之后保持 WeChat 处于运行状态(可以最小化),否则 ChatLens 读不到数据。装完回到 <a href="#setup" class="text-accent hover:underline">第 01 步</a> 重新打开 ChatLens 即可。</p>
       </li>
 
-      <!-- Step 2 -->
-      <li class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
+      <!-- Step 3 — Only needed if Claude Code not installed / no Max -->
+      <li id="step-claude" class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
         <div class="flex items-baseline gap-4">
-          <div class="step-number text-3xl font-bold">02</div>
-          <h3 class="text-xl font-semibold text-ink">订阅并安装 Claude Code</h3>
+          <div class="step-number text-3xl font-bold">03</div>
+          <h3 class="text-xl font-semibold text-ink">如果缺 Claude:订阅并安装 Claude Code</h3>
         </div>
         <p class="mt-3 text-slate-600 leading-relaxed">
           ChatLens 不调用任何远程 API,所有摘要都通过本机 <code class="text-[13px] bg-slate-100 px-1.5 py-0.5 rounded">claude</code> CLI(Claude Code)产生,用的是你 Claude Max 订阅自带的额度。
@@ -240,49 +269,8 @@ curl -fsSL <span class="s">https://claude.com/install.sh</span> | bash</div>
           <div>
             <div class="font-semibold text-ink mb-1">④ 验证</div>
 <div class="codecard">claude -p <span class="s">"hello"</span></div>
-            <p class="text-slate-600 mt-2 text-[13px]">能看到一句回复就说明 Claude CLI 工作正常,ChatLens 后面就能调用它生成精华了。</p>
+            <p class="text-slate-600 mt-2 text-[13px]">能看到一句回复就说明 Claude CLI 工作正常。回到 <a href="#setup" class="text-accent hover:underline">第 01 步</a> 重新打开 ChatLens 即可。</p>
           </div>
-        </div>
-      </li>
-
-      <!-- Step 3 -->
-      <li class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
-        <div class="flex items-baseline gap-4">
-          <div class="step-number text-3xl font-bold">03</div>
-          <h3 class="text-xl font-semibold text-ink">无需单独安装 wechat-cli</h3>
-        </div>
-        <p class="mt-3 text-slate-600 leading-relaxed">
-          ChatLens v0.1.8 起把 <a href="https://github.com/xiaomaogy/wechat-cli" target="_blank" rel="noopener" class="text-accent hover:underline font-medium">wechat-cli</a> 直接打包进了 <code class="bg-slate-100 px-1 rounded">.app</code>,你<span class="font-medium text-ink">不需要再 pipx 装一遍</span>。它仍然是只读访问本地 WeChat 数据库的那条桥梁,不会修改任何数据。
-        </p>
-        <p class="mt-3 text-slate-600 leading-relaxed text-[13px]">
-          唯一保留的人工动作是<span class="font-medium text-ink">第一次启动时跑一遍 init</span> —— init 需要从内核读 WeChat 进程的会话密钥,只能 sudo。ChatLens 首次启动会自动弹出引导页,点一下「在 Terminal 中运行 init」就会替你在 Terminal 里贴好命令,你只需要输 Mac 登录密码。下一步往下走。
-        </p>
-        <div class="mt-5 rounded-lg bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 leading-relaxed">
-          <span class="font-semibold text-ink">如果你之前已经 pipx 装过 wechat-cli:</span>
-          没关系,可以保留也可以 <code class="bg-slate-100 px-1 rounded">pipx uninstall wechat-cli</code>。ChatLens 在 bundled 模式下只用自己内置的那一份,跟 PATH 上的不冲突。
-        </div>
-      </li>
-
-      <!-- Step 4 -->
-      <li class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
-        <div class="flex items-baseline gap-4">
-          <div class="step-number text-3xl font-bold">04</div>
-          <h3 class="text-xl font-semibold text-ink">运行 ChatLens</h3>
-        </div>
-        <p class="mt-3 text-slate-600 leading-relaxed">
-          前三步完成后,这一步只剩双击。
-        </p>
-        <ol class="mt-4 space-y-2 text-sm text-slate-700 list-decimal pl-5">
-          <li>把<a href="#download" class="text-accent hover:underline">下载的 ChatLens.dmg</a> 打开,把 ChatLens.app 拖进 Applications。</li>
-          <li>首次启动:在 Finder 里<span class="font-medium text-ink">右键 ChatLens.app → 打开</span>,在弹窗里点「打开」。<br><span class="text-xs text-slate-500">(因为没花钱给 Apple 公证,Gatekeeper 默认会拦下来。只有第一次需要这么干。)</span></li>
-          <li><span class="font-medium text-ink">首次启动会弹出设置引导页</span>:点「在 Terminal 中运行 init」→ Terminal 自动打开并贴好命令 → 输入 Mac 登录密码 → 看到「密钥提取完成」后回到 ChatLens 点「我已完成」。</li>
-          <li>左侧栏顶部应该看到两个绿勾:<span class="text-emerald-600 font-medium">✓ wechat-cli</span> 和 <span class="text-emerald-600 font-medium">✓ claude CLI</span>。</li>
-          <li>看到群列表后,点任意一个群的「生成精华」,等 30–90 秒,你的第一份每日精华就到手了。</li>
-        </ol>
-
-        <div class="mt-5 rounded-lg bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 leading-relaxed">
-          <span class="font-semibold text-ink">小贴士:</span>
-          如果左侧状态条出现红色「WeChat 未启动」,把 WeChat 桌面应用打开再刷新即可。出现「Claude 额度已用尽」就等下一个计费周期开始,或升级到更高档的 Max。
         </div>
       </li>
     </ol>
