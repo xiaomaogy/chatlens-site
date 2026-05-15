@@ -11,153 +11,649 @@
 <meta property="og:title" content="ChatLens — 本机微信群智能看板" />
 <meta property="og:description" content="一键给每个微信群生成每日精华。数据从不离开你的 Mac。" />
 <meta property="og:type" content="website" />
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: {
-          ink:'#0F172A', ink2:'#1E293B',
-          accent:'#4F46E5', accent2:'#7C3AED',
-        },
-        fontFamily: {
-          sans: ['-apple-system','BlinkMacSystemFont','"PingFang SC"','"Hiragino Sans GB"','"Microsoft YaHei"','sans-serif'],
-          mono: ['ui-monospace','SFMono-Regular','"SF Mono"','Menlo','monospace'],
-        },
-      },
-    },
-  };
-</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <style>
+  /* =========================================================================
+     Neobrutalism tokens (from skills/neobrutalism)
+     ------------------------------------------------------------------------- */
+  :root {
+    --primary:   #FDC800;
+    --secondary: #432DD7;
+    --success:   #16A34A;
+    --warning:   #D97706;
+    --danger:    #DC2626;
+    --surface:   #FBFBF9;
+    --text:      #1C293C;
+    --ink:       #1C293C;
+    --card:      #FFFFFF;
+
+    --border:    3px solid var(--ink);
+    --border-thick: 4px solid var(--ink);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+
+    /* Spacing scale 4/8/12/16/24/32 */
+    --s-1: 4px;  --s-2: 8px;  --s-3: 12px;
+    --s-4: 16px; --s-5: 24px; --s-6: 32px;
+
+    /* Hard-offset shadows (no blur — neobrutalism signature) */
+    --shadow-sm: 4px 4px 0 var(--ink);
+    --shadow-md: 6px 6px 0 var(--ink);
+    --shadow-lg: 8px 8px 0 var(--ink);
+    --shadow-xl: 12px 12px 0 var(--ink);
+  }
+
+  * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  .gradient-text {
-    background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #DB2777 100%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--surface);
+    /* Grid backdrop — characteristic brutalist texture */
+    background-image:
+      linear-gradient(var(--ink) 1px, transparent 1px),
+      linear-gradient(90deg, var(--ink) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: -1px -1px;
+    background-attachment: fixed;
+    background-color: var(--surface);
+    background-blend-mode: normal;
+    -webkit-font-smoothing: antialiased;
   }
-  .glass {
-    background: rgba(255,255,255,0.65);
-    backdrop-filter: saturate(140%) blur(8px);
-    -webkit-backdrop-filter: saturate(140%) blur(8px);
+  /* Make the grid faint */
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background: var(--surface);
+    opacity: 0.94;
+    z-index: -1;
+    pointer-events: none;
   }
-  .step-number {
-    background: linear-gradient(135deg, #4F46E5, #7C3AED);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
+
+  a { color: var(--secondary); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+  a:hover { background: var(--primary); color: var(--ink); }
+
+  *:focus-visible {
+    outline: 4px solid var(--secondary);
+    outline-offset: 3px;
   }
-  pre code {
-    color: #E2E8F0; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 13px; line-height: 1.6;
+
+  code, .mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   }
+
+  .container { max-width: 1080px; margin: 0 auto; padding: 0 var(--s-5); }
+
+  /* =========================================================================
+     Utility components
+     ------------------------------------------------------------------------- */
+  .label-caps {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .pill {
+    display: inline-flex; align-items: center; gap: var(--s-2);
+    padding: var(--s-2) var(--s-3);
+    background: var(--card);
+    border: var(--border);
+    border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); border: 2px solid var(--ink); }
+
+  .btn {
+    --btn-bg: var(--primary);
+    display: inline-flex; align-items: center; gap: var(--s-3);
+    padding: var(--s-4) var(--s-5);
+    background: var(--btn-bg);
+    color: var(--ink);
+    border: var(--border-thick);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    text-decoration: none;
+    font-weight: 800;
+    font-size: 17px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    cursor: pointer;
+  }
+  .btn:hover { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); background: var(--btn-bg); color: var(--ink); }
+  .btn:active { transform: translate(4px, 4px); box-shadow: 2px 2px 0 var(--ink); }
+  .btn--lg { padding: 20px 28px; font-size: 19px; box-shadow: var(--shadow-lg); }
+  .btn--lg:hover { transform: translate(-3px, -3px); box-shadow: 11px 11px 0 var(--ink); }
+  .btn--lg:active { transform: translate(5px, 5px); box-shadow: 3px 3px 0 var(--ink); }
+  .btn--ink { --btn-bg: var(--ink); color: white; }
+  .btn--ink:hover { color: white; }
+  .btn--purple { --btn-bg: var(--secondary); color: white; }
+  .btn--purple:hover { color: white; }
+  .btn--ghost { --btn-bg: var(--card); }
+
+  .card {
+    background: var(--card);
+    border: var(--border-thick);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: var(--s-6);
+  }
+
+  .badge {
+    display: inline-flex; align-items: center;
+    padding: 6px 12px;
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge--primary { background: var(--primary); }
+  .badge--purple  { background: var(--secondary); color: white; }
+  .badge--success { background: var(--success); color: white; }
+  .badge--danger  { background: var(--danger); color: white; }
+  .badge--warning { background: var(--warning); color: white; }
+  .badge--cream   { background: var(--surface); }
+
+  /* highlight strip behind inline text */
+  .marker {
+    background: var(--primary);
+    padding: 0 8px;
+    border: var(--border);
+    box-shadow: var(--shadow-sm);
+    display: inline-block;
+    transform: rotate(-1deg);
+  }
+
+  /* =========================================================================
+     Top nav
+     ------------------------------------------------------------------------- */
+  header.nav {
+    position: sticky; top: 0; z-index: 30;
+    background: var(--surface);
+    border-bottom: var(--border-thick);
+  }
+  header.nav .inner {
+    max-width: 1080px; margin: 0 auto;
+    padding: 12px var(--s-5);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--s-4);
+  }
+  .brand {
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none; color: var(--ink);
+  }
+  .brand-mark {
+    width: 36px; height: 36px;
+    background: var(--primary);
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    display: grid; place-items: center;
+    font-weight: 900;
+    transform: rotate(-3deg);
+  }
+  .brand-name { font-weight: 900; font-size: 19px; letter-spacing: -0.01em; }
+  .navlinks { display: flex; align-items: center; gap: var(--s-4); }
+  .navlinks a {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 13px;
+    color: var(--ink);
+    text-decoration: none;
+    padding: 6px 8px;
+  }
+  .navlinks a:hover { background: var(--primary); color: var(--ink); }
+  .navlinks .nav-cta {
+    background: var(--ink); color: white;
+    padding: 10px 16px; border: var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+  }
+  .navlinks .nav-cta:hover { background: var(--primary); color: var(--ink); }
+
+  /* =========================================================================
+     Hero
+     ------------------------------------------------------------------------- */
+  .hero { padding: 72px 0 56px; text-align: center; }
+  .hero h1 {
+    font-size: clamp(40px, 7vw, 64px);
+    line-height: 1.05;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    margin: 24px 0 0;
+  }
+  .hero h1 .accent {
+    background: var(--primary);
+    border: var(--border-thick);
+    box-shadow: var(--shadow-md);
+    padding: 0 12px;
+    display: inline-block;
+    transform: rotate(-1.5deg);
+    margin: 6px 4px;
+  }
+  .hero .sub {
+    max-width: 640px; margin: 28px auto 0;
+    font-size: 18px; line-height: 1.65;
+    color: var(--ink);
+  }
+  .hero .sub .meta { color: #475569; font-size: 16px; display: block; margin-top: 8px; }
+
+  .download-block {
+    margin-top: 40px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .download-block .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--card);
+    padding: 8px 14px;
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+  }
+  .download-block .note { font-size: 13px; max-width: 420px; text-align: center; }
+
+  /* Preview window */
+  .preview {
+    margin: 64px auto 0;
+    max-width: 880px;
+    background: var(--card);
+    border: var(--border-thick);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    transform: rotate(-0.4deg);
+  }
+  .preview-titlebar {
+    height: 38px;
+    background: var(--surface);
+    border-bottom: var(--border-thick);
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 16px;
+  }
+  .preview-titlebar .dot { width: 14px; height: 14px; border: 2.5px solid var(--ink); border-radius: 50%; }
+  .preview-titlebar .dot.r { background: var(--danger); }
+  .preview-titlebar .dot.y { background: var(--primary); }
+  .preview-titlebar .dot.g { background: var(--success); }
+  .preview-titlebar .title { margin-left: 12px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+  .preview-body { display: flex; min-height: 280px; }
+  .preview-sidebar {
+    width: 200px;
+    background: var(--ink); color: var(--surface);
+    padding: 18px 16px;
+    border-right: var(--border-thick);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .preview-sidebar .brand-row { display: flex; align-items: center; gap: 8px; }
+  .preview-sidebar .brand-row .m { width: 22px; height: 22px; background: var(--primary); border: 2px solid var(--surface); display: grid; place-items: center; color: var(--ink); font-weight: 900; font-size: 12px; }
+  .preview-sidebar .status { font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.7; }
+  .preview-sidebar .status .ok { color: var(--primary); }
+  .preview-sidebar .status .sub { color: #94A3B8; padding-left: 12px; }
+  .preview-sidebar .nav-item {
+    font-size: 12px; padding: 6px 8px;
+    border: 2px solid transparent;
+    text-transform: uppercase; letter-spacing: 0.06em; font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  }
+  .preview-sidebar .nav-item.active { background: var(--primary); color: var(--ink); border: 2px solid var(--surface); }
+  .preview-main { flex: 1; padding: 18px; background: var(--surface); }
+  .preview-main .heading { font-family: 'JetBrains Mono', monospace; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 12px; }
+  .preview-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .preview-card {
+    background: var(--card);
+    border: 2.5px solid var(--ink);
+    border-radius: 4px;
+    box-shadow: 3px 3px 0 var(--ink);
+    padding: 10px;
+  }
+  .preview-card .name { font-weight: 800; font-size: 13px; }
+  .preview-card .meta-row { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #475569; margin-top: 2px; }
+  .preview-card .cta { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--secondary); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  /* =========================================================================
+     Section heading
+     ------------------------------------------------------------------------- */
+  section { padding-top: 64px; }
+  section h2 {
+    font-size: clamp(32px, 5vw, 44px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin: 0 0 8px;
+  }
+  section .lede { color: var(--ink); opacity: 0.7; font-size: 16px; margin-bottom: 32px; }
+
+  /* =========================================================================
+     Prereqs banner
+     ------------------------------------------------------------------------- */
+  .prereqs {
+    margin-top: 32px;
+    background: var(--primary);
+    border: var(--border-thick);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: var(--s-5);
+    display: flex; gap: var(--s-4);
+    align-items: flex-start;
+  }
+  .prereqs .icon {
+    font-size: 32px; line-height: 1; flex-shrink: 0;
+    background: var(--card);
+    border: var(--border);
+    width: 56px; height: 56px;
+    display: grid; place-items: center;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+  }
+  .prereqs h3 { margin: 0 0 6px; font-size: 19px; font-weight: 900; }
+  .prereqs p { margin: 0; font-size: 15px; line-height: 1.6; }
+  .prereqs .max-note { margin-top: 10px; font-size: 13px; }
+
+  /* =========================================================================
+     Setup steps
+     ------------------------------------------------------------------------- */
+  .steps { list-style: none; padding: 0; margin: 24px 0 0; display: flex; flex-direction: column; gap: 28px; }
+  .step {
+    background: var(--card);
+    border: var(--border-thick);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: var(--s-6);
+    position: relative;
+  }
+  .step .step-head { display: flex; align-items: center; gap: 18px; margin-bottom: 14px; }
+  .step .step-num {
+    width: 64px; height: 64px;
+    background: var(--primary);
+    border: var(--border-thick);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+    display: grid; place-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 900;
+    font-size: 22px;
+    flex-shrink: 0;
+    transform: rotate(-2deg);
+  }
+  .step:nth-child(2) .step-num { background: var(--secondary); color: white; transform: rotate(2deg); }
+  .step:nth-child(3) .step-num { background: var(--success); color: white; transform: rotate(-2deg); }
+  .step h3 { margin: 0; font-size: 24px; font-weight: 900; letter-spacing: -0.01em; }
+  .step .intro { font-size: 16px; line-height: 1.6; margin: 0 0 12px; }
+  .step ol.sub { margin: 12px 0 0; padding-left: 22px; display: flex; flex-direction: column; gap: 10px; font-size: 15px; }
+  .step ul.sub { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+  .step .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 14px; }
+  .step .tip {
+    margin-top: 20px;
+    background: var(--surface);
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    padding: 14px 16px;
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  .step .tip strong { font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.05em; font-size: 12px; }
+
+  .warn-line {
+    margin-top: 12px;
+    background: var(--warning);
+    color: white;
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    padding: 10px 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+
+  /* code card */
   .codecard {
-    background: #0F172A; color: #E2E8F0; padding: 14px 18px;
-    border-radius: 10px; font-size: 13px; line-height: 1.7; font-family: ui-monospace, monospace;
+    background: var(--ink);
+    color: var(--surface);
+    border: var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.7;
     overflow-x: auto;
+    margin-top: 8px;
   }
   .codecard .c { color: #94A3B8; }
-  .codecard .k { color: #C4B5FD; }
-  .codecard .s { color: #86EFAC; }
+  .codecard .s { color: var(--primary); }
+
+  .sub-step { margin-top: 18px; }
+  .sub-step .sub-label {
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  /* status pills inline */
+  .ok-tag, .err-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 8px;
+    border: 2px solid var(--ink);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  .ok-tag { background: var(--success); color: white; }
+  .err-tag { background: var(--danger); color: white; }
+
+  /* =========================================================================
+     Privacy
+     ------------------------------------------------------------------------- */
+  .privacy-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 32px; }
+  @media (max-width: 760px) { .privacy-grid { grid-template-columns: 1fr; } }
+  .pcard {
+    background: var(--card);
+    border: var(--border-thick);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: var(--s-5);
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .pcard .icon {
+    width: 52px; height: 52px;
+    border: var(--border);
+    display: grid; place-items: center;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+  }
+  .pcard:nth-child(1) .icon { background: var(--primary); }
+  .pcard:nth-child(2) .icon { background: var(--secondary); color: white; }
+  .pcard:nth-child(3) .icon { background: var(--success); color: white; }
+  .pcard h3 { margin: 0; font-size: 19px; font-weight: 900; }
+  .pcard p { margin: 0; font-size: 14.5px; line-height: 1.6; }
+
+  /* =========================================================================
+     FAQ
+     ------------------------------------------------------------------------- */
+  .faq { margin-top: 28px; display: flex; flex-direction: column; gap: 14px; }
+  .faq details {
+    background: var(--card);
+    border: var(--border-thick);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+  }
+  .faq details[open] { box-shadow: var(--shadow-lg); }
+  .faq summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+    font-weight: 800; font-size: 16px;
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary .chev {
+    width: 32px; height: 32px;
+    border: var(--border);
+    background: var(--primary);
+    border-radius: var(--radius-sm);
+    display: grid; place-items: center;
+    font-weight: 900;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .faq details[open] summary .chev { transform: rotate(180deg); background: var(--secondary); color: white; }
+  .faq .answer {
+    border-top: var(--border-thick);
+    padding: 16px 20px;
+    font-size: 15px; line-height: 1.65;
+  }
+  .faq .answer code {
+    display: inline-block; background: var(--surface);
+    border: 2px solid var(--ink); border-radius: 3px;
+    padding: 1px 6px; font-size: 13px;
+  }
+  .faq .answer code.block {
+    display: block; margin-top: 8px; padding: 10px 14px;
+  }
+
+  /* =========================================================================
+     Footer
+     ------------------------------------------------------------------------- */
+  footer {
+    margin-top: 80px;
+    border-top: var(--border-thick);
+    background: var(--ink);
+    color: var(--surface);
+  }
+  footer .inner {
+    max-width: 1080px; margin: 0 auto;
+    padding: 28px var(--s-5);
+    display: flex; justify-content: space-between; align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  footer .brand-name { color: var(--surface); }
+  footer .brand-mark { background: var(--primary); border-color: var(--surface); box-shadow: 4px 4px 0 var(--primary); color: var(--ink); }
+  footer .label-caps { color: var(--primary); }
+
+  /* =========================================================================
+     Responsive tweaks
+     ------------------------------------------------------------------------- */
+  @media (max-width: 720px) {
+    .preview-sidebar { display: none; }
+    .navlinks a:not(.nav-cta) { display: none; }
+    .step { padding: 22px; }
+    .card, .pcard { padding: 22px; }
+    body { background-size: 24px 24px; }
+  }
 </style>
 </head>
-<body class="font-sans text-slate-800 antialiased">
-
-<!-- ambient background -->
-<div class="fixed inset-0 -z-10 pointer-events-none">
-  <div class="absolute inset-0 bg-gradient-to-b from-white via-slate-50 to-white"></div>
-  <div class="absolute top-[-200px] left-1/2 -translate-x-1/2 w-[1100px] h-[600px] rounded-full opacity-30 blur-3xl"
-       style="background: radial-gradient(closest-side, #C7D2FE, transparent 70%);"></div>
-  <div class="absolute top-[600px] right-[-200px] w-[600px] h-[600px] rounded-full opacity-20 blur-3xl"
-       style="background: radial-gradient(closest-side, #DDD6FE, transparent 70%);"></div>
-</div>
+<body>
 
 <!-- top nav -->
-<header class="sticky top-0 z-30 glass border-b border-slate-200/60">
-  <div class="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-    <a href="#top" class="flex items-center gap-2.5">
-      <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 grid place-items-center text-white font-bold text-sm">C</div>
-      <span class="font-semibold tracking-tight text-ink">ChatLens</span>
+<header class="nav">
+  <div class="inner">
+    <a href="#top" class="brand">
+      <div class="brand-mark">C</div>
+      <span class="brand-name">ChatLens</span>
     </a>
-    <nav class="flex items-center gap-5 text-sm text-slate-600">
-      <a href="#setup" class="hover:text-ink">使用指南</a>
-      <a href="#privacy" class="hover:text-ink">隐私</a>
-      <a href="#download" class="px-3 py-1.5 rounded-lg bg-ink text-white hover:bg-slate-900 transition">下载</a>
+    <nav class="navlinks">
+      <a href="#setup">使用指南</a>
+      <a href="#privacy">隐私</a>
+      <a href="#download" class="nav-cta">下载</a>
     </nav>
   </div>
 </header>
 
-<main id="top" class="max-w-5xl mx-auto px-6">
+<main id="top" class="container">
 
   <!-- hero -->
-  <section class="pt-20 pb-16 text-center">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium text-indigo-700 bg-indigo-50 border border-indigo-100">
-      <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-      本机运行 · 数据不出 Mac
-    </div>
-    <h1 class="mt-6 text-5xl md:text-6xl font-bold tracking-tight text-ink leading-[1.1]">
-      给你的微信群<br>装一个<span class="gradient-text">智能看板</span>
+  <section class="hero">
+    <span class="pill">
+      <span class="dot"></span>
+      <span class="label-caps">本机运行 · 数据不出 MAC</span>
+    </span>
+
+    <h1>
+      给你的微信群<br>
+      装一个 <span class="accent">智能看板</span>
     </h1>
-    <p class="mt-6 text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-      一键给每个群生成「每日精华」「嘉宾分享」「跨群汇总」。聊天记录从本地数据库读取,摘要由你的本机 Claude Max 生成。<br class="hidden md:block">
-      <span class="text-slate-500 text-base">无云端,无 API Key,无后台账号。</span>
+
+    <p class="sub">
+      一键给每个群生成「每日精华」「嘉宾分享」「跨群汇总」。聊天记录从本地数据库读取,摘要由你的本机 Claude Max 生成。
+      <span class="meta">无云端 · 无 API Key · 无后台账号</span>
     </p>
 
-    <div id="download" class="mt-10 flex flex-col items-center gap-3">
-      <a href="https://github.com/xiaomaogy/chatlens/releases/download/v0.1.9/ChatLens.dmg"
-         class="group inline-flex items-center gap-3 px-6 py-3.5 rounded-xl bg-ink text-white font-medium shadow-lg shadow-indigo-500/10 hover:bg-slate-900 hover:shadow-xl hover:shadow-indigo-500/20 transition-all">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <div id="download" class="download-block">
+      <a href="https://github.com/xiaomaogy/chatlens/releases/download/v0.1.9/ChatLens.dmg" class="btn btn--lg">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/>
         </svg>
         <span>下载 ChatLens.dmg</span>
-        <span class="text-xs text-slate-300 font-normal">v0.1.9 · macOS · ~49 MB</span>
       </a>
-      <p class="text-xs text-slate-500 max-w-md">
-        未签名版本 · 首次启动请<span class="font-medium text-slate-700">右键 → 打开</span>,在弹窗里确认一次
-      </p>
+      <div class="meta">v0.1.9 · macOS · ~49 MB</div>
+      <p class="note">未签名版本 · 首次启动请<strong>右键 → 打开</strong>,在弹窗里确认一次</p>
     </div>
 
     <!-- preview window -->
-    <div class="mt-16 mx-auto max-w-3xl rounded-2xl bg-white shadow-2xl shadow-indigo-500/10 border border-slate-200 overflow-hidden">
-      <div class="h-9 bg-slate-100 border-b border-slate-200 flex items-center px-4 gap-1.5">
-        <span class="w-3 h-3 rounded-full bg-rose-300"></span>
-        <span class="w-3 h-3 rounded-full bg-amber-300"></span>
-        <span class="w-3 h-3 rounded-full bg-emerald-300"></span>
-        <span class="ml-3 text-xs text-slate-400">ChatLens — 本机模式</span>
+    <div class="preview" aria-hidden="true">
+      <div class="preview-titlebar">
+        <span class="dot r"></span>
+        <span class="dot y"></span>
+        <span class="dot g"></span>
+        <span class="title">ChatLens — 本机模式</span>
       </div>
-      <div class="flex h-72 text-sm">
-        <aside class="w-44 bg-ink text-slate-300 p-4 flex flex-col gap-3">
-          <div class="flex items-center gap-2">
-            <div class="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-500 grid place-items-center text-white font-bold text-xs">C</div>
-            <span class="text-white text-sm font-semibold">ChatLens</span>
+      <div class="preview-body">
+        <aside class="preview-sidebar">
+          <div class="brand-row">
+            <div class="m">C</div>
+            <span style="font-weight:900; font-size:14px;">ChatLens</span>
           </div>
-          <div class="text-[11px] space-y-0.5">
-            <div class="text-emerald-400">✓ wechat-cli 1.2</div>
-            <div class="text-slate-500 pl-3">最近消息 · 3 分钟前</div>
-            <div class="text-emerald-400">✓ claude CLI</div>
+          <div class="status">
+            <div class="ok">✓ wechat-cli 1.2</div>
+            <div class="sub">最近消息 · 3 分钟前</div>
+            <div class="ok">✓ claude CLI</div>
           </div>
-          <div class="space-y-1 mt-2">
-            <div class="text-xs px-2 py-1.5 rounded bg-white/10 text-white">Dashboard</div>
-            <div class="text-xs px-2 py-1.5 text-slate-400">精华</div>
-            <div class="text-xs px-2 py-1.5 text-slate-400">每日精华</div>
+          <div style="display:flex; flex-direction:column; gap:4px; margin-top:6px;">
+            <div class="nav-item active">Dashboard</div>
+            <div class="nav-item">精华</div>
+            <div class="nav-item">每日精华</div>
           </div>
         </aside>
-        <div class="flex-1 p-5 bg-slate-50">
-          <div class="text-xs text-slate-500 mb-3">12 个群 · 监控中</div>
-          <div class="grid grid-cols-2 gap-2.5">
-            <div class="bg-white rounded-lg border border-slate-200 p-3">
-              <div class="text-[13px] font-semibold text-ink truncate">硅谷读书会</div>
-              <div class="text-[11px] text-slate-500 mt-0.5">142 成员 · 今日 3 条精华</div>
-              <div class="mt-2 text-[11px] text-indigo-600 font-medium">生成精华 →</div>
+        <div class="preview-main">
+          <div class="heading">12 个群 · 监控中</div>
+          <div class="preview-grid">
+            <div class="preview-card">
+              <div class="name">硅谷读书会</div>
+              <div class="meta-row">142 成员 · 今日 3 条精华</div>
+              <div class="cta">生成精华 →</div>
             </div>
-            <div class="bg-white rounded-lg border border-slate-200 p-3">
-              <div class="text-[13px] font-semibold text-ink truncate">AI 前线小组</div>
-              <div class="text-[11px] text-slate-500 mt-0.5">88 成员 · 今日 5 条精华</div>
-              <div class="mt-2 text-[11px] text-indigo-600 font-medium">生成精华 →</div>
+            <div class="preview-card">
+              <div class="name">AI 前线小组</div>
+              <div class="meta-row">88 成员 · 今日 5 条精华</div>
+              <div class="cta">生成精华 →</div>
             </div>
-            <div class="bg-white rounded-lg border border-slate-200 p-3">
-              <div class="text-[13px] font-semibold text-ink truncate">创业咖啡馆</div>
-              <div class="text-[11px] text-slate-500 mt-0.5">211 成员 · 今日 2 条精华</div>
+            <div class="preview-card">
+              <div class="name">创业咖啡馆</div>
+              <div class="meta-row">211 成员 · 今日 2 条精华</div>
             </div>
-            <div class="bg-white rounded-lg border border-slate-200 p-3">
-              <div class="text-[13px] font-semibold text-ink truncate">独立开发者</div>
-              <div class="text-[11px] text-slate-500 mt-0.5">56 成员 · 今日 1 条精华</div>
+            <div class="preview-card">
+              <div class="name">独立开发者</div>
+              <div class="meta-row">56 成员 · 今日 1 条精华</div>
             </div>
           </div>
         </div>
@@ -166,203 +662,207 @@
   </section>
 
   <!-- prereqs banner -->
-  <section id="prereqs" class="mt-4 mb-2">
-    <div class="rounded-2xl border border-amber-200 bg-amber-50/60 p-5 flex flex-col md:flex-row md:items-start gap-3">
-      <div class="text-2xl">⚠️</div>
-      <div class="text-sm text-amber-900 leading-relaxed">
-        <div class="font-semibold text-amber-950 mb-1">先把 ChatLens 跑起来,缺什么再补</div>
-        ChatLens 本身是一个轻量壳子,真正干活的是你本机的 WeChat 和 Claude Code。先装上跑一遍,左侧状态条会告诉你还缺哪一块,再照下面对应的步骤补上即可。
-        <div class="mt-2 text-[13px]">Claude Code 需要付费的 <span class="font-semibold">Claude Max</span> 订阅(USD $100/月或 $200/月),没有的话摘要功能跑不起来。</div>
-      </div>
+  <aside class="prereqs" aria-labelledby="prereqs-h">
+    <div class="icon" aria-hidden="true">⚡</div>
+    <div>
+      <h3 id="prereqs-h">先把 ChatLens 跑起来,缺什么再补</h3>
+      <p>ChatLens 本身是一个轻量壳子,真正干活的是你本机的 <strong>WeChat</strong> 和 <strong>Claude Code</strong>。先装上跑一遍,左侧状态条会告诉你还缺哪一块,再照下面对应的步骤补上即可。</p>
+      <p class="max-note">Claude Code 需要付费的 <strong>Claude Max</strong> 订阅(USD $100/月或 $200/月),没有的话摘要功能跑不起来。</p>
     </div>
-  </section>
+  </aside>
 
   <!-- setup -->
-  <section id="setup" class="pt-16">
-    <h2 class="text-3xl font-bold tracking-tight text-ink">使用指南</h2>
-    <p class="mt-2 text-slate-600">先跑起来,缺哪块依赖再补哪步。</p>
+  <section id="setup">
+    <h2>使用指南</h2>
+    <p class="lede">先跑起来,缺哪块依赖再补哪步。</p>
 
-    <ol class="mt-10 space-y-6">
+    <ol class="steps">
 
-      <!-- Step 1 — Run ChatLens (this is the entry point) -->
-      <li class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
-        <div class="flex items-baseline gap-4">
-          <div class="step-number text-3xl font-bold">01</div>
-          <h3 class="text-xl font-semibold text-ink">安装并运行 ChatLens</h3>
+      <!-- Step 01 -->
+      <li class="step">
+        <div class="step-head">
+          <div class="step-num">01</div>
+          <h3>安装并运行 ChatLens</h3>
         </div>
-        <p class="mt-3 text-slate-600 leading-relaxed">
-          直接装上跑起来,启动后左侧状态条会告诉你缺什么。
-        </p>
-        <ol class="mt-4 space-y-2 text-sm text-slate-700 list-decimal pl-5">
-          <li>把<a href="#download" class="text-accent hover:underline">下载的 ChatLens.dmg</a> 打开,把 ChatLens.app 拖进 Applications。</li>
-          <li>首次启动:在 Finder 里<span class="font-medium text-ink">右键 ChatLens.app → 打开</span>,在弹窗里点「打开」。<br><span class="text-xs text-slate-500">(没花钱给 Apple 公证,只有第一次需要这么做。)</span></li>
+        <p class="intro">直接装上跑起来,启动后左侧状态条会告诉你缺什么。</p>
+        <ol class="sub">
+          <li>把<a href="#download">下载的 ChatLens.dmg</a> 打开,把 <strong>ChatLens.app</strong> 拖进 Applications。</li>
+          <li>首次启动:在 Finder 里 <strong>右键 ChatLens.app → 打开</strong>,弹窗里点「打开」。<br><span style="font-size:13px; color:#475569;">(没花钱给 Apple 公证,只有第一次需要这么做。)</span></li>
           <li>启动后看左侧栏顶部:
-            <ul class="mt-1.5 space-y-1 list-disc pl-5 text-[13px]">
-              <li>两个 <span class="text-emerald-600 font-medium">✓ 绿勾</span> 都在 → 依赖齐了,继续下一条。</li>
-              <li>看到 <span class="text-rose-600 font-medium">✗ wechat-cli 不可用</span>,或顶部红条提示 WeChat 数据读不到 → 跳到 <a href="#step-wechat" class="text-accent hover:underline font-medium">第 02 步</a> 装 WeChat for Mac。</li>
-              <li>看到 <span class="text-rose-600 font-medium">✗ claude CLI</span> 不可用 → 跳到 <a href="#step-claude" class="text-accent hover:underline font-medium">第 03 步</a> 装 Claude Code。</li>
+            <ul class="sub" style="margin-top:8px;">
+              <li>两个 <span class="ok-tag">✓ 绿勾</span> 都在 → 依赖齐了,继续下一条。</li>
+              <li>看到 <span class="err-tag">✗ wechat-cli 不可用</span>,或顶部红条提示 WeChat 数据读不到 → 跳到 <a href="#step-wechat"><strong>第 02 步</strong></a>。</li>
+              <li>看到 <span class="err-tag">✗ claude CLI 不可用</span> → 跳到 <a href="#step-claude"><strong>第 03 步</strong></a>。</li>
             </ul>
           </li>
-          <li>依赖齐了之后,首次会弹出设置引导页:点「在 Terminal 中运行 init」→ 输入 Mac 登录密码 → 看到「密钥提取完成」后回到 ChatLens 点「我已完成」。这一步只做一次。</li>
+          <li>依赖齐了之后,首次会弹出设置引导页:点「在 Terminal 中运行 init」→ 输入 Mac 登录密码 → 看到「密钥提取完成」回到 ChatLens 点「我已完成」。<strong>这一步只做一次</strong>。</li>
           <li>看到群列表后,点任意一个群的「生成精华」,等 30–90 秒,你的第一份每日精华就到手了。</li>
         </ol>
-
-        <div class="mt-5 rounded-lg bg-slate-50 border border-slate-200 p-4 text-xs text-slate-600 leading-relaxed">
-          <span class="font-semibold text-ink">小贴士:</span>
+        <div class="tip">
+          <strong>小贴士 / Tips</strong><br>
           运行中如果左侧出现红色「WeChat 未启动」,把 WeChat 桌面应用打开再刷新即可。出现「Claude 额度已用尽」就等下一个计费周期开始,或升级到更高档的 Max。
         </div>
       </li>
 
-      <!-- Step 2 — Only needed if WeChat not installed / wrong version -->
-      <li id="step-wechat" class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
-        <div class="flex items-baseline gap-4">
-          <div class="step-number text-3xl font-bold">02</div>
-          <h3 class="text-xl font-semibold text-ink">如果缺 WeChat:安装 WeChat for Mac</h3>
+      <!-- Step 02 -->
+      <li id="step-wechat" class="step">
+        <div class="step-head">
+          <div class="step-num">02</div>
+          <h3>如果缺 WeChat:安装 WeChat for Mac</h3>
         </div>
-        <p class="mt-3 text-slate-600 leading-relaxed">
-          ChatLens 读取的是你本地 Mac 上 WeChat 客户端的数据库,所以必须装并登录 WeChat。
-          请装<span class="font-medium text-ink">这个锁定版本 4.1.9.31</span> — 最新版的 WeChat 经常改本地数据库结构,跟不上的时候 ChatLens 就会读不到聊天记录。锁版本最稳。
+        <p class="intro">
+          ChatLens 读取的是你本地 Mac 上 WeChat 客户端的数据库,所以必须装并登录 WeChat。请装<strong>这个锁定版本 4.1.9.31</strong> — 最新版的 WeChat 经常改本地数据库结构,跟不上的时候 ChatLens 就会读不到聊天记录。锁版本最稳。
         </p>
-        <div class="mt-4 flex flex-wrap gap-3">
-          <a href="https://github.com/zsbai/wechat-versions/releases/download/4.1.9.31/WeChatMac-4.1.9.31.dmg"
-             class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 text-white text-sm hover:bg-slate-800">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/></svg>
+        <div class="row">
+          <a href="https://github.com/zsbai/wechat-versions/releases/download/4.1.9.31/WeChatMac-4.1.9.31.dmg" class="btn btn--ink">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12"/></svg>
             下载 WeChatMac 4.1.9.31
           </a>
-          <span class="text-xs text-slate-500 self-center">来源:<a href="https://github.com/zsbai/wechat-versions" target="_blank" rel="noopener" class="hover:underline">zsbai/wechat-versions</a> · 锁定版本</span>
+          <span class="label-caps" style="opacity:0.7;">来源:<a href="https://github.com/zsbai/wechat-versions" target="_blank" rel="noopener">zsbai/wechat-versions</a></span>
         </div>
-        <p class="mt-3 text-xs text-amber-700"><span class="font-medium">⚠ 如果你已经装了更新的 WeChat</span>,先在「应用程序」里把当前的 WeChat.app 删掉再装这个版本,否则系统可能拒绝降级或装出来跑的还是旧设置。</p>
-        <p class="mt-4 text-xs text-slate-500">装完后请<span class="font-medium">至少登录一次</span>,让 WeChat 把聊天记录同步到本地。之后保持 WeChat 处于运行状态(可以最小化),否则 ChatLens 读不到数据。装完回到 <a href="#setup" class="text-accent hover:underline">第 01 步</a> 重新打开 ChatLens 即可。</p>
+        <div class="warn-line">
+          ⚠ 如果你已经装了更新的 WeChat,先在「应用程序」里把当前的 WeChat.app 删掉再装这个版本,否则系统可能拒绝降级或装出来跑的还是旧设置。
+        </div>
+        <div class="tip">
+          <strong>装完之后</strong><br>
+          请<strong>至少登录一次</strong>,让 WeChat 把聊天记录同步到本地。之后保持 WeChat 运行(可以最小化),否则 ChatLens 读不到数据。装完回到 <a href="#setup">第 01 步</a> 重新打开 ChatLens 即可。
+        </div>
       </li>
 
-      <!-- Step 3 — Only needed if Claude Code not installed / no Max -->
-      <li id="step-claude" class="rounded-2xl bg-white border border-slate-200 p-6 md:p-8 shadow-sm">
-        <div class="flex items-baseline gap-4">
-          <div class="step-number text-3xl font-bold">03</div>
-          <h3 class="text-xl font-semibold text-ink">如果缺 Claude:订阅并安装 Claude Code</h3>
+      <!-- Step 03 -->
+      <li id="step-claude" class="step">
+        <div class="step-head">
+          <div class="step-num">03</div>
+          <h3>如果缺 Claude:订阅并安装 Claude Code</h3>
         </div>
-        <p class="mt-3 text-slate-600 leading-relaxed">
-          ChatLens 不调用任何远程 API,所有摘要都通过本机 <code class="text-[13px] bg-slate-100 px-1.5 py-0.5 rounded">claude</code> CLI(Claude Code)产生,用的是你 Claude Max 订阅自带的额度。
+        <p class="intro">
+          ChatLens 不调用任何远程 API,所有摘要都通过本机 <code>claude</code> CLI(Claude Code)产生,用的是你 Claude Max 订阅自带的额度。
         </p>
 
-        <div class="mt-5 space-y-4 text-sm text-slate-700">
-          <div>
-            <div class="font-semibold text-ink mb-1">① 订阅 Claude Max</div>
-            前往 <a href="https://www.claude.com/pricing" target="_blank" rel="noopener" class="text-accent hover:underline">claude.com/pricing</a>,选择 <span class="font-medium">Max 计划</span>(目前 USD $100/月起;$200/月额度更高,适合每天给多个群生成精华)。
-            <span class="text-slate-500">没有 Max 订阅时,Claude Code 无法在本地以无 API Key 模式运行。</span>
-          </div>
+        <div class="sub-step">
+          <div class="sub-label"><span class="badge badge--primary">①</span> 订阅 Claude Max</div>
+          <p style="margin:0;">前往 <a href="https://www.claude.com/pricing" target="_blank" rel="noopener">claude.com/pricing</a>,选择 <strong>Max 计划</strong>(目前 USD $100/月起;$200/月额度更高,适合每天给多个群生成精华)。<br><span style="color:#475569; font-size:14px;">没有 Max 订阅时,Claude Code 无法在本地以无 API Key 模式运行。</span></p>
+        </div>
 
-          <div>
-            <div class="font-semibold text-ink mb-1">② 安装 Claude Code CLI</div>
-            打开终端 (Terminal.app),粘贴运行:
-<div class="codecard mt-2"><span class="c"># macOS / Linux 通用安装命令</span>
+        <div class="sub-step">
+          <div class="sub-label"><span class="badge badge--primary">②</span> 安装 Claude Code CLI</div>
+          <p style="margin:0;">打开终端 (Terminal.app),粘贴运行:</p>
+<div class="codecard"><span class="c"># macOS / Linux 通用安装命令</span>
 curl -fsSL <span class="s">https://claude.com/install.sh</span> | bash</div>
-            <p class="text-xs text-slate-500 mt-2">官方文档:<a href="https://docs.claude.com/en/docs/claude-code/quickstart" target="_blank" rel="noopener" class="text-accent hover:underline">docs.claude.com/.../claude-code/quickstart</a></p>
-          </div>
+          <p style="margin:8px 0 0; font-size:13px; color:#475569;">官方文档:<a href="https://docs.claude.com/en/docs/claude-code/quickstart" target="_blank" rel="noopener">docs.claude.com/.../claude-code/quickstart</a></p>
+        </div>
 
-          <div>
-            <div class="font-semibold text-ink mb-1">③ 登录</div>
+        <div class="sub-step">
+          <div class="sub-label"><span class="badge badge--primary">③</span> 登录</div>
 <div class="codecard">claude</div>
-            <p class="text-slate-600 mt-2 text-[13px]">第一次运行会弹出浏览器,用刚订阅的 Claude 账号登录(选择 <span class="font-medium">"Subscription"</span> / Max 计划那个入口,而不是 API Key)。</p>
-          </div>
+          <p style="margin:8px 0 0; font-size:14px;">第一次运行会弹出浏览器,用刚订阅的 Claude 账号登录(选择 <strong>"Subscription" / Max 计划</strong> 入口,而不是 API Key)。</p>
+        </div>
 
-          <div>
-            <div class="font-semibold text-ink mb-1">④ 验证</div>
+        <div class="sub-step">
+          <div class="sub-label"><span class="badge badge--primary">④</span> 验证</div>
 <div class="codecard">claude -p <span class="s">"hello"</span></div>
-            <p class="text-slate-600 mt-2 text-[13px]">能看到一句回复就说明 Claude CLI 工作正常。回到 <a href="#setup" class="text-accent hover:underline">第 01 步</a> 重新打开 ChatLens 即可。</p>
-          </div>
+          <p style="margin:8px 0 0; font-size:14px;">能看到一句回复就说明 Claude CLI 工作正常。回到 <a href="#setup">第 01 步</a> 重新打开 ChatLens 即可。</p>
         </div>
       </li>
     </ol>
   </section>
 
   <!-- privacy -->
-  <section id="privacy" class="pt-20">
-    <h2 class="text-3xl font-bold tracking-tight text-ink">为什么是「本机」?</h2>
-    <p class="mt-2 text-slate-600 max-w-2xl">微信聊天记录的敏感程度,容不下"反正我也只发了点工作内容"这种侥幸。所以 ChatLens 从架构上就把这事儿封死了。</p>
+  <section id="privacy">
+    <h2>为什么是「本机」?</h2>
+    <p class="lede">微信聊天记录的敏感程度,容不下"反正我也只发了点工作内容"这种侥幸。所以 ChatLens 从架构上就把这事儿封死了。</p>
 
-    <div class="mt-8 grid md:grid-cols-3 gap-4">
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-600 grid place-items-center mb-4">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <div class="privacy-grid">
+      <div class="pcard">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         </div>
-        <h3 class="font-semibold text-ink mb-1.5">数据不出本机</h3>
-        <p class="text-sm text-slate-600 leading-relaxed">聊天记录从你 Mac 上的 WeChat 本地数据库读,经过本机 SQLite 落地,从未发往任何远程服务器。</p>
+        <h3>数据不出本机</h3>
+        <p>聊天记录从你 Mac 上的 WeChat 本地数据库读,经过本机 SQLite 落地,从未发往任何远程服务器。</p>
       </div>
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-600 grid place-items-center mb-4">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      <div class="pcard">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
         </div>
-        <h3 class="font-semibold text-ink mb-1.5">无 API Key</h3>
-        <p class="text-sm text-slate-600 leading-relaxed">摘要由本机 <code class="text-xs bg-slate-100 px-1 py-0.5 rounded">claude -p</code> 子进程产生,走的是你 Max 订阅的 OAuth 会话,没有任何 ANTHROPIC_API_KEY 的概念。</p>
+        <h3>无 API Key</h3>
+        <p>摘要由本机 <code>claude -p</code> 子进程产生,走的是你 Max 订阅的 OAuth 会话,没有任何 ANTHROPIC_API_KEY 的概念。</p>
       </div>
-      <div class="rounded-2xl border border-slate-200 bg-white p-6">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-violet-100 text-indigo-600 grid place-items-center mb-4">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>
+      <div class="pcard">
+        <div class="icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 010 20M12 2a15 15 0 000 20"/></svg>
         </div>
-        <h3 class="font-semibold text-ink mb-1.5">只绑 127.0.0.1</h3>
-        <p class="text-sm text-slate-600 leading-relaxed">本地服务默认只监听 loopback,局域网里其他设备访问不到,更不会暴露到公网。</p>
+        <h3>只绑 127.0.0.1</h3>
+        <p>本地服务默认只监听 loopback,局域网里其他设备访问不到,更不会暴露到公网。</p>
       </div>
     </div>
   </section>
 
   <!-- faq -->
-  <section id="faq" class="pt-20 pb-16">
-    <h2 class="text-3xl font-bold tracking-tight text-ink">常见问题</h2>
-    <div class="mt-8 divide-y divide-slate-200 border-t border-b border-slate-200">
-
-      <details class="group py-4">
-        <summary class="cursor-pointer flex items-center justify-between text-ink font-medium">
-          打开时提示「无法打开,因为它来自身份不明的开发者」怎么办?
-          <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+  <section id="faq" style="padding-bottom: 32px;">
+    <h2>常见问题</h2>
+    <div class="faq">
+      <details>
+        <summary>
+          <span>打开时提示「无法打开,因为它来自身份不明的开发者」怎么办?</span>
+          <span class="chev" aria-hidden="true">▾</span>
         </summary>
-        <p class="mt-3 text-sm text-slate-600 leading-relaxed">这版没有 Apple 公证,系统会默认拦截。在 Finder 里右键 ChatLens.app → 选「打开」,弹窗里再点一次「打开」即可。只有第一次需要这么做。也可以在终端跑:
-        <code class="block mt-2 bg-slate-100 px-3 py-2 rounded text-xs">xattr -dr com.apple.quarantine /Applications/ChatLens.app</code></p>
+        <div class="answer">
+          这版没有 Apple 公证,系统会默认拦截。在 Finder 里右键 ChatLens.app → 选「打开」,弹窗里再点一次「打开」即可。只有第一次需要这么做。也可以在终端跑:
+          <code class="block">xattr -dr com.apple.quarantine /Applications/ChatLens.app</code>
+        </div>
       </details>
 
-      <details class="group py-4">
-        <summary class="cursor-pointer flex items-center justify-between text-ink font-medium">
-          一定要 Claude Max $100 那档吗?
-          <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      <details>
+        <summary>
+          <span>一定要 Claude Max $100 那档吗?</span>
+          <span class="chev" aria-hidden="true">▾</span>
         </summary>
-        <p class="mt-3 text-sm text-slate-600 leading-relaxed">Max 是目前 Claude Code 能在本地以"无 API Key、走订阅额度"方式跑的唯一入口。$100/月够轻度使用(几个群、每天点几次精华);如果你想每天批量汇总十几个群,建议直接 $200/月那一档,不然容易在傍晚遇到额度用尽。</p>
+        <div class="answer">
+          Max 是目前 Claude Code 能在本地以"无 API Key、走订阅额度"方式跑的唯一入口。$100/月够轻度使用(几个群、每天点几次精华);如果你想每天批量汇总十几个群,建议直接 $200/月那一档,不然容易在傍晚遇到额度用尽。
+        </div>
       </details>
 
-      <details class="group py-4">
-        <summary class="cursor-pointer flex items-center justify-between text-ink font-medium">
-          wechat-cli 安全吗?会被微信封号吗?
-          <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      <details>
+        <summary>
+          <span>wechat-cli 安全吗?会被微信封号吗?</span>
+          <span class="chev" aria-hidden="true">▾</span>
         </summary>
-        <p class="mt-3 text-sm text-slate-600 leading-relaxed">wechat-cli 只读你本地已经同步好的数据库,不发任何网络请求,不模拟客户端协议,所以理论上对微信账号是无感的。不过这是社区项目,使用风险自负;敏感账号谨慎使用。</p>
+        <div class="answer">
+          wechat-cli 只读你本地已经同步好的数据库,不发任何网络请求,不模拟客户端协议,所以理论上对微信账号是无感的。不过这是社区项目,使用风险自负;敏感账号谨慎使用。
+        </div>
       </details>
 
-      <details class="group py-4">
-        <summary class="cursor-pointer flex items-center justify-between text-ink font-medium">
-          支持 Windows / Linux 吗?
-          <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      <details>
+        <summary>
+          <span>支持 Windows / Linux 吗?</span>
+          <span class="chev" aria-hidden="true">▾</span>
         </summary>
-        <p class="mt-3 text-sm text-slate-600 leading-relaxed">目前只构建了 macOS 版本(因为 WeChat for Mac + wechat-cli 是当前最稳定的组合)。理论上能跑在任何有 Python 3.11+、Claude Code、本地 WeChat 数据库的系统上,有需求可以联系作者。</p>
+        <div class="answer">
+          目前只构建了 macOS 版本(因为 WeChat for Mac + wechat-cli 是当前最稳定的组合)。理论上能跑在任何有 Python 3.11+、Claude Code、本地 WeChat 数据库的系统上,有需求可以联系作者。
+        </div>
       </details>
 
-      <details class="group py-4">
-        <summary class="cursor-pointer flex items-center justify-between text-ink font-medium">
-          数据存在哪?怎么清空?
-          <span class="text-slate-400 group-open:rotate-180 transition-transform">▾</span>
+      <details>
+        <summary>
+          <span>数据存在哪?怎么清空?</span>
+          <span class="chev" aria-hidden="true">▾</span>
         </summary>
-        <p class="mt-3 text-sm text-slate-600 leading-relaxed">所有 ChatLens 自己生成的内容都在 <code class="text-xs bg-slate-100 px-1 py-0.5 rounded">~/Library/Application Support/ChatLens/</code>。直接删这个目录就等于完全重置(原始 WeChat 数据不受影响,因为我们从来没碰过它)。</p>
+        <div class="answer">
+          所有 ChatLens 自己生成的内容都在 <code>~/Library/Application Support/ChatLens/</code>。直接删这个目录就等于完全重置(原始 WeChat 数据不受影响,因为我们从来没碰过它)。
+        </div>
       </details>
-
     </div>
   </section>
 </main>
 
-<footer class="border-t border-slate-200 mt-8">
-  <div class="max-w-5xl mx-auto px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-3 text-sm text-slate-500">
-    <div class="flex items-center gap-2">
-      <div class="w-5 h-5 rounded-md bg-gradient-to-br from-indigo-500 to-violet-500 grid place-items-center text-white font-bold text-[10px]">C</div>
-      <span>ChatLens · 本机微信群智能看板</span>
+<footer>
+  <div class="inner">
+    <div class="brand">
+      <div class="brand-mark">C</div>
+      <span class="brand-name">ChatLens</span>
+      <span class="label-caps" style="margin-left:12px;">本机微信群智能看板</span>
     </div>
-    <div>本机运行 · 数据不出 Mac</div>
+    <div class="label-caps">本机运行 · 数据不出 MAC</div>
   </div>
 </footer>
 
